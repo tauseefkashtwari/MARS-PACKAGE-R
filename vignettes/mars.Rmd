@@ -1,0 +1,122 @@
+---
+title: "Multivariate Adaptive Regression Splines (MARS)"
+output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{mars}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(tidyverse)
+```
+# Multivariate Adaptive Regression Spline (MARS) Models
+
+## Contents {#contents}
+
+1 Getting started
+2 The MARS algorithm
+3 Preparing inputs
+4 Methods
+
+## 1 Getting started
+
+### 1.1 Introduction
+As discussed in Jerome H. Friedman's (1991) paper, the MARS (Multivariate Adaptive Regression Splines) is used to solve non-linear regression problems.This algorithm creates linear regression models using an aggregate of functions to make predictions using recursive partitioning. 
+
+
+### 1.2 Setting up the package
+Install the package from GitHub. First install and load the devtools package and then install mars with
+```{r,eval=FALSE}
+library(devtools)
+install_github(repo = 'https://github.com/SFUStatgen/SFUStat360Projects',
+               subdir = 'Projects/project-tauseef1/mars')
+```
+
+You can then load the package.
+```{r,eval=FALSE}
+library(mars)
+devtools::load_all()
+```
+
+## 2 The MARS algorithm
+The model we receive at the end from the `mars` algorithm is built using both `forward` and backward `stepwise` functions, it fits the data that we supply and creates a linear combination of the the basis functions.
+
+### 2.1 Important Terminology
+- `Multivariate` - Able to generate model based on several input variables (high
+dimensionality).
+- `Adaptive` - Generates flexible models in passes each time adjusting the model.
+- `Regression` - Estimation of relationship among independent and dependent variables.
+- `Spline` - A piecewise defined polynomial function that is smooth (possesses higher order
+derivatives) where polynomial pieces connect.
+- `Knot` - The point at which two polynomial pieces connect.
+
+### 2.2 Applications of MARS
+Spam filter is mentioned in the book as an example. High dimensions are handled well. Non-linear relationships modeled piecewise. Continuous dependent variable typically, but can be categorical
+
+## 4 Preparing inputs 
+Ozone is the response variable
+
+```{r}
+library(mars)
+devtools::load_all()
+library(stats); data(mtcars)
+form <- formula(mpg~ wt+hp)
+mc <- mars.control(Mmax=10)
+mm <- mars(form, mtcars, mc)
+```
+
+## 5 Methods
+
+### 5.1 Forward pass stepwise
+At each step, `mars` adds the basis function which reduces the residual error the most. Always adds the basis function in `pairs`, both sides of knot. Calculate value for `knot` and function that fit the data, least squares. This is a greedy algorithm, the addition of model terms continues until the max number of terms in the model is reached.
+
+
+### 5.2 Backward pass stepwise
+Remove one term at a time from the model. Remove the term which increases the residual error the least. Continue removing terms until cross validation is satisfied. Use the `Generalized Cross Validation` (GCV) function for this purpose
+
+
+### 5.3 Using  mars methods
+This `mars` package has 4 methods which use the output from `mars()` function. The methods are are `plot()`, `predict.mars()`, `print()`, and `summary()`.
+
+### 5.4 Predict
+The `predictmars` takes new data and returns the predicted basis functions based on the fitted model.
+```{r warning = FALSE, message = FALSE}
+mc_predict <- mars.control(Mmax=2)
+data <- mtcars[c("mpg", "wt", "hp")]
+mtcars_mars <- mars(form, data[1:30,], mc_predict)
+predict.mars(mtcars_mars)
+```
+
+
+### 5.5 Summary
+The `summary.mars` prints a summary of the mars object with the function call. Also prints the summary of the hinges of each basis function.
+```{r warning = FALSE, message = FALSE}
+summary(mm)
+```
+
+
+### 5.6 Print
+The `print.mars` method prints out a mars object
+```{r warning = FALSE, message = FALSE}
+print(mm)
+```
+### 5.7 Plot
+Plots the fitted basis functions that depend on explanatory variable(main effects) or two explanatory variables (two-way interactions). 
+
+Use `predict.lm()` to see the residual plots.
+```{r}
+plot
+```
+
+## Authors
+Tauseef Kashtwari, Ibraheem Azad, Promit Chowdhury
+
+
+## References
+* Jerome H. Friedman. "Multivariate Adaptive Regression Splines."
+Ann. Statist. 19 (1) 1 - 67, March, 1991. http://doi.org/10.1214/aos/1176347963
